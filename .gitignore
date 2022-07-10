@@ -1,0 +1,14 @@
+.gradle/*
+.idea/*
+Topics/*
+
+course-info.yaml
+course-remote-info.yaml
+
+Cinema Room REST Service/*
+!Cinema Room REST Service/task/
+
+Cinema Room REST Service/task/*
+!Cinema Room REST Service/task/src
+!Cinema Room REST Service/task/test
+!Cinema Room REST Service/task/build.gradle
