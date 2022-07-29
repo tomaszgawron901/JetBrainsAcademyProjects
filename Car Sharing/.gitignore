@@ -1,0 +1,14 @@
+.gradle/*
+.idea/*
+Topics/*
+
+course-info.yaml
+course-remote-info.yaml
+
+Car Sharing/*
+!Car Sharing/task/
+
+Car Sharing/task/*
+!Car Sharing/task/src
+!Car Sharing/task/test
+!Car Sharing/task/build.gradle
