@@ -12,3 +12,5 @@ Car Sharing/task/*
 !Car Sharing/task/src
 !Car Sharing/task/test
 !Car Sharing/task/build.gradle
+
+src/*
