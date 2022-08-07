@@ -2,14 +2,13 @@ package recipes.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
-import recipes.common.service.IRecipeService;
+import recipes.mapping.ContractToDomainMapping;
+import recipes.mapping.DomainToContractMapping;
+import recipes.service.IRecipeService;
 import recipes.contract.request.RecipeRequest;
 import recipes.contract.response.IdResponse;
 import recipes.contract.response.RecipeResponse;
-import recipes.tool.DataContractMapper;
-
 @RestController
 @RequestMapping("api/recipe")
 public class RecipeController {
@@ -22,12 +21,18 @@ public class RecipeController {
 
     @PostMapping("/new")
     public ResponseEntity<IdResponse> createRecipe(@RequestBody RecipeRequest requestBody) {
-        var recipe = recipeService.createRecipe(DataContractMapper.map(requestBody));
-        if (recipe.isEmpty()) {
+        try {
+            var recipe = recipeService.createRecipe(ContractToDomainMapping.mapToDomain(requestBody));
+            if (recipe.isEmpty()) {
+                return ResponseEntity.badRequest().build();
+            }
+
+            return ResponseEntity.ok(new IdResponse(recipe.get().getId()));
+        }
+        catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
 
-        return ResponseEntity.ok(new IdResponse(recipe.get().getId()));
     }
 
     @GetMapping("/{id}")
@@ -37,6 +42,14 @@ public class RecipeController {
             return ResponseEntity.notFound().build();
         }
 
-        return ResponseEntity.ok(DataContractMapper.map(recipe.get()));
+        return ResponseEntity.ok(DomainToContractMapping.mapToContract(recipe.get()));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteRecipe(@PathVariable("id") int id) {
+        if (recipeService.deleteRecipe(id)) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.notFound().build();
     }
 }
