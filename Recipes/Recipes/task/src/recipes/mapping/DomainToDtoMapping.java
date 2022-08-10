@@ -7,8 +7,6 @@ import recipes.domain.model.Recipe;
 
 import java.util.stream.Collectors;
 
-import static recipes.mapping.CommonMapping.mapList;
-
 public class DomainToDtoMapping {
 
     public static RecipeDto mapToDto(Recipe recipe) {
@@ -20,6 +18,8 @@ public class DomainToDtoMapping {
         recipeDto.setId(recipe.getId());
         recipeDto.setName(recipe.getName());
         recipeDto.setDescription(recipe.getDescription());
+        recipeDto.setCategory(recipe.getCategory());
+        recipeDto.setUpdatedAt(recipe.getUpdatedAt());
 
         var ingredientDtoList = recipe.getIngredients().stream()
                 .map(ingredient -> {

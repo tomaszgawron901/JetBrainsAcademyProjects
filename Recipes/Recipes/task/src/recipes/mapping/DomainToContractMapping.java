@@ -14,6 +14,8 @@ public class DomainToContractMapping {
         return new RecipeResponse(
                 recipe.getName(),
                 recipe.getDescription(),
+                recipe.getCategory(),
+                recipe.getUpdatedAt(),
                 recipe.getIngredients().toArray(new String[0]),
                 recipe.getDirections().toArray(new String[0])
         );

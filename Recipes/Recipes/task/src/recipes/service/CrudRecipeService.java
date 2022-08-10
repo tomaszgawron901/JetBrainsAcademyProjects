@@ -7,8 +7,8 @@ import recipes.mapping.DtoToDomainMapping;
 import recipes.repository.IRecipeRepository;
 
 import javax.validation.ConstraintViolationException;
-import javax.validation.Valid;
 import javax.validation.Validator;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
@@ -35,6 +35,7 @@ public class CrudRecipeService implements IRecipeService {
 
         try {
             var recipeDto = DomainToDtoMapping.mapToDto(recipe);
+            recipeDto.setUpdatedAt(LocalDateTime.now());
             recipeDto = recipeRepository.save(recipeDto);
             return Optional.of(DtoToDomainMapping.mapToDomain(recipeDto));
         }
@@ -47,6 +48,22 @@ public class CrudRecipeService implements IRecipeService {
     public boolean deleteRecipe(long id) {
         if (recipeRepository.existsById(id)) {
             recipeRepository.deleteById(id);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @throws ConstraintViolationException if the object is not valid
+     */
+    @Override
+    public boolean updateRecipe(long id, Recipe mapToDomain) {
+        this.ensureValid(mapToDomain);
+        if (recipeRepository.existsById(id)) {
+            var recipeDto = DomainToDtoMapping.mapToDto(mapToDomain);
+            recipeDto.setId(id);
+            recipeDto.setUpdatedAt(LocalDateTime.now());
+            recipeRepository.save(recipeDto);
             return true;
         }
         return false;
