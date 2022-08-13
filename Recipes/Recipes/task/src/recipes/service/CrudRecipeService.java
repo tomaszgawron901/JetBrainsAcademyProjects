@@ -1,6 +1,7 @@
 package recipes.service;
 
 import org.springframework.stereotype.Service;
+import recipes.contract.data.RecipeDto;
 import recipes.domain.model.Recipe;
 import recipes.mapping.DomainToDtoMapping;
 import recipes.mapping.DtoToDomainMapping;
@@ -9,7 +10,12 @@ import recipes.repository.IRecipeRepository;
 import javax.validation.ConstraintViolationException;
 import javax.validation.Validator;
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @Service
 public class CrudRecipeService implements IRecipeService {
@@ -31,11 +37,11 @@ public class CrudRecipeService implements IRecipeService {
      */
     @Override
     public Optional<Recipe> createRecipe(Recipe recipe) {
+        recipe.setUpdatedAt(LocalDateTime.now());
         this.ensureValid(recipe);
 
         try {
             var recipeDto = DomainToDtoMapping.mapToDto(recipe);
-            recipeDto.setUpdatedAt(LocalDateTime.now());
             recipeDto = recipeRepository.save(recipeDto);
             return Optional.of(DtoToDomainMapping.mapToDomain(recipeDto));
         }
@@ -57,16 +63,39 @@ public class CrudRecipeService implements IRecipeService {
      * @throws ConstraintViolationException if the object is not valid
      */
     @Override
-    public boolean updateRecipe(long id, Recipe mapToDomain) {
-        this.ensureValid(mapToDomain);
+    public boolean updateRecipe(long id, Recipe recipe) {
+        recipe.setUpdatedAt(LocalDateTime.now());
+        this.ensureValid(recipe);
         if (recipeRepository.existsById(id)) {
-            var recipeDto = DomainToDtoMapping.mapToDto(mapToDomain);
+            var recipeDto = DomainToDtoMapping.mapToDto(recipe);
             recipeDto.setId(id);
             recipeDto.setUpdatedAt(LocalDateTime.now());
             recipeRepository.save(recipeDto);
             return true;
         }
         return false;
+    }
+
+    @Override
+    public List<Recipe> searchByName(String name) {
+        return StreamSupport.stream(recipeRepository.findAll().spliterator(), false)
+                .filter(recipe -> recipe.getName().toLowerCase().contains(name.toLowerCase()))
+                .sorted(Comparator.comparing(RecipeDto::getUpdatedAt).reversed())
+                .map(DtoToDomainMapping::mapToDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Recipe> searchByCategory(String category) {
+        if (category == null || category.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return StreamSupport.stream(recipeRepository.findAll().spliterator(), false)
+                .filter(recipe -> recipe.getCategory().equalsIgnoreCase(category))
+                .sorted(Comparator.comparing(RecipeDto::getUpdatedAt).reversed())
+                .map(DtoToDomainMapping::mapToDomain)
+                .collect(Collectors.toList());
     }
 
     /**

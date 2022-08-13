@@ -11,7 +11,7 @@ public class RecipeResponse {
     private String name;
     private String description;
     private String category;
-    private LocalDateTime updatedAt;
+    private LocalDateTime date;
     private String[] ingredients;
     private String[] directions;
 }

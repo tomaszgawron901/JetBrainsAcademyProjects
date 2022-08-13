@@ -3,8 +3,6 @@ package recipes.mapping;
 import recipes.contract.response.RecipeResponse;
 import recipes.domain.model.Recipe;
 
-import static recipes.mapping.CommonMapping.mapList;
-
 public class DomainToContractMapping {
     public static RecipeResponse mapToContract(Recipe recipe) {
         if (recipe == null) {

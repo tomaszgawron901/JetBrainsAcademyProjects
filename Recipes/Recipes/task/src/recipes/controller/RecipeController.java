@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import recipes.mapping.CommonMapping;
 import recipes.mapping.ContractToDomainMapping;
 import recipes.mapping.DomainToContractMapping;
 import recipes.service.IRecipeService;
@@ -12,6 +13,7 @@ import recipes.contract.response.IdResponse;
 import recipes.contract.response.RecipeResponse;
 
 import javax.validation.ConstraintViolationException;
+import java.util.Collection;
 
 @RestController
 @RequestMapping("api/recipe")
@@ -63,5 +65,21 @@ public class RecipeController {
             return ResponseEntity.noContent().build();
         }
         return ResponseEntity.notFound().build();
+    }
+
+    @GetMapping("/search")
+    @ResponseBody
+    public ResponseEntity<Collection<RecipeResponse>> searchByName(
+            @RequestParam(name = "name", required = false)String name,
+            @RequestParam(name = "category", required = false) String category
+    ) {
+        if (name != null && category == null) {
+            return ResponseEntity.ok(CommonMapping.mapList(recipeService.searchByName(name), DomainToContractMapping::mapToContract));
+        }
+        else if (category != null && name == null) {
+            return ResponseEntity.ok(CommonMapping.mapList(recipeService.searchByCategory(category), DomainToContractMapping::mapToContract));
+        }
+
+        return ResponseEntity.badRequest().build();
     }
 }
