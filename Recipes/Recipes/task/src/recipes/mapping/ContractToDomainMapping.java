@@ -1,6 +1,8 @@
 package recipes.mapping;
 
 import recipes.contract.request.RecipeRequest;
+import recipes.contract.request.UserCredentialsRequest;
+import recipes.domain.model.AppUserDetails;
 import recipes.domain.model.Recipe;
 
 public class ContractToDomainMapping {
@@ -17,5 +19,16 @@ public class ContractToDomainMapping {
         recipe.setDirections(recipeRequest.getDirections());
 
         return recipe;
+    }
+
+    public static AppUserDetails mapToDomain(UserCredentialsRequest userCredentialsRequest) {
+        if (userCredentialsRequest == null) {
+            return null;
+        }
+
+        return new AppUserDetails(
+                userCredentialsRequest.getEmail(),
+                userCredentialsRequest.getPassword()
+        );
     }
 }

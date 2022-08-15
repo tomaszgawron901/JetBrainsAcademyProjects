@@ -1,11 +1,13 @@
-package recipes.service;
+package recipes.service.implementations;
 
 import org.springframework.stereotype.Service;
 import recipes.contract.data.RecipeDto;
+import recipes.domain.exception.AuthorizationException;
 import recipes.domain.model.Recipe;
 import recipes.mapping.DomainToDtoMapping;
 import recipes.mapping.DtoToDomainMapping;
 import recipes.repository.IRecipeRepository;
+import recipes.service.interfaces.IRecipeService;
 
 import javax.validation.ConstraintViolationException;
 import javax.validation.Validator;
@@ -18,13 +20,11 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 @Service
-public class CrudRecipeService implements IRecipeService {
+public class CrudRecipeService extends BaseApplicationService implements IRecipeService {
     private final IRecipeRepository recipeRepository;
-    private final Validator validator;
-
     public CrudRecipeService(IRecipeRepository recipeRepository, Validator validator) {
+        super(validator);
         this.recipeRepository = recipeRepository;
-        this.validator = validator;
     }
 
     @Override
@@ -38,10 +38,11 @@ public class CrudRecipeService implements IRecipeService {
     @Override
     public Optional<Recipe> createRecipe(Recipe recipe) {
         recipe.setUpdatedAt(LocalDateTime.now());
+        recipe.setUser(getCurrentUser());
         this.ensureValid(recipe);
 
         try {
-            var recipeDto = DomainToDtoMapping.mapToDto(recipe);
+            RecipeDto recipeDto = DomainToDtoMapping.mapToDto(recipe);
             recipeDto = recipeRepository.save(recipeDto);
             return Optional.of(DtoToDomainMapping.mapToDomain(recipeDto));
         }
@@ -50,30 +51,49 @@ public class CrudRecipeService implements IRecipeService {
         }
     }
 
+    /**
+     * @throws AuthorizationException if the user is not authorized to update the recipe
+     */
     @Override
     public boolean deleteRecipe(long id) {
-        if (recipeRepository.existsById(id)) {
-            recipeRepository.deleteById(id);
-            return true;
+        var recipeDtoOptional = recipeRepository.findById(id);
+        if(recipeDtoOptional.isEmpty()) {
+            return false;
         }
-        return false;
+        var recipeDto = recipeDtoOptional.get();
+        if(!recipeDto.getUser().getEmail().equals(getCurrentUser().getEmail())) {
+            throw new AuthorizationException("You are not authorized to delete this recipe");
+        }
+
+        recipeRepository.delete(recipeDto);
+
+        return true;
     }
 
     /**
      * @throws ConstraintViolationException if the object is not valid
+     * @throws AuthorizationException if the user is not authorized to update the recipe
      */
     @Override
     public boolean updateRecipe(long id, Recipe recipe) {
         recipe.setUpdatedAt(LocalDateTime.now());
         this.ensureValid(recipe);
-        if (recipeRepository.existsById(id)) {
-            var recipeDto = DomainToDtoMapping.mapToDto(recipe);
-            recipeDto.setId(id);
-            recipeDto.setUpdatedAt(LocalDateTime.now());
-            recipeRepository.save(recipeDto);
-            return true;
+        var recipeDtoOptional = recipeRepository.findById(id);
+        if(recipeDtoOptional.isEmpty()) {
+            return false;
         }
-        return false;
+        var recipeDto = recipeDtoOptional.get();
+        boolean currentUserIsOwner = recipeDto.getUser().getEmail().equals(getCurrentUser().getEmail());
+        if(!currentUserIsOwner) {
+            throw new AuthorizationException("You are not authorized to update this recipe");
+        }
+
+        var newRecipeDto = DomainToDtoMapping.mapToDto(recipe);
+        newRecipeDto.setId(id);
+        newRecipeDto.setUser(recipeDto.getUser());
+        newRecipeDto.setUpdatedAt(LocalDateTime.now());
+        recipeRepository.save(newRecipeDto);
+        return true;
     }
 
     @Override
@@ -96,16 +116,5 @@ public class CrudRecipeService implements IRecipeService {
                 .sorted(Comparator.comparing(RecipeDto::getUpdatedAt).reversed())
                 .map(DtoToDomainMapping::mapToDomain)
                 .collect(Collectors.toList());
-    }
-
-    /**
-     * @param object object to validate
-     * @throws ConstraintViolationException if the object is not valid
-     */
-    private <T> void ensureValid(T object) {
-        var violations = validator.validate(object);
-        if(violations.size() > 0) {
-            throw new ConstraintViolationException(violations);
-        }
     }
 }

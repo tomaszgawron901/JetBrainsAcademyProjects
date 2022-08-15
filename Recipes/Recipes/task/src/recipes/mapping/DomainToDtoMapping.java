@@ -1,8 +1,10 @@
 package recipes.mapping;
 
+import org.springframework.security.core.userdetails.UserDetails;
 import recipes.contract.data.DirectionsDto;
 import recipes.contract.data.IngredientDto;
 import recipes.contract.data.RecipeDto;
+import recipes.contract.data.UserDto;
 import recipes.domain.model.Recipe;
 
 import java.util.stream.Collectors;
@@ -20,6 +22,7 @@ public class DomainToDtoMapping {
         recipeDto.setDescription(recipe.getDescription());
         recipeDto.setCategory(recipe.getCategory());
         recipeDto.setUpdatedAt(recipe.getUpdatedAt());
+        recipeDto.setUser(mapToDto(recipe.getUser()));
 
         var ingredientDtoList = recipe.getIngredients().stream()
                 .map(ingredient -> {
@@ -43,5 +46,16 @@ public class DomainToDtoMapping {
         recipeDto.setDirections(directionsDtoList);
 
         return recipeDto;
+    }
+
+    public static UserDto mapToDto(UserDetails user) {
+        if (user == null) {
+            return null;
+        }
+
+        var userDto = new UserDto();
+        userDto.setEmail(user.getUsername());
+        userDto.setPassword(user.getPassword());
+        return userDto;
     }
 }
