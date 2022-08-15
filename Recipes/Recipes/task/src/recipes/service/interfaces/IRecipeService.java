@@ -1,4 +1,4 @@
-package recipes.service;
+package recipes.service.interfaces;
 
 import recipes.domain.model.Recipe;
 

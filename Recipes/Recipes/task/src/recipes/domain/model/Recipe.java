@@ -2,6 +2,7 @@ package recipes.domain.model;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
@@ -27,6 +28,8 @@ public class Recipe {
 
     @NotNull
     private LocalDateTime updatedAt;
+
+    private UserDetails user;
 
     @NotEmpty
     private List<@NotBlank String> ingredients;

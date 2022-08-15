@@ -1,33 +1,23 @@
 package recipes.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import recipes.mapping.CommonMapping;
 import recipes.mapping.ContractToDomainMapping;
 import recipes.mapping.DomainToContractMapping;
-import recipes.service.IRecipeService;
+import recipes.service.interfaces.IRecipeService;
 import recipes.contract.request.RecipeRequest;
 import recipes.contract.response.IdResponse;
 import recipes.contract.response.RecipeResponse;
 
-import javax.validation.ConstraintViolationException;
 import java.util.Collection;
 
 @RestController
 @RequestMapping("api/recipe")
-public class RecipeController {
-
-    @ResponseStatus(value = HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<Object> handleBadRequestException(ConstraintViolationException e) {
-        return ResponseEntity.badRequest().body(e.getMessage());
-    }
-
+public class RecipeController extends BaseController {
     private final IRecipeService recipeService;
 
-    public RecipeController(@Autowired IRecipeService recipeService) {
+    public RecipeController(IRecipeService recipeService) {
         this.recipeService = recipeService;
     }
 
